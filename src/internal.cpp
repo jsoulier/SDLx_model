@@ -1,19 +1,21 @@
+#include <SDL3/SDL.h>
 #include <SDLx_model/SDL_model.h>
 
 #include <cstring>
+#include <filesystem>
 
 #include "internal.hpp"
 #include "stb_image.h"
 
-SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* path)
+SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, std::filesystem::path& path)
 {
     int width;
     int height;
     int channels;
-    void* src_data = stbi_load(path, &width, &height, &channels, 4);
+    void* src_data = stbi_load(path.string().data(), &width, &height, &channels, 4);
     if (!src_data)
     {
-        SDL_Log("Failed to load image: %s, %s", path, stbi_failure_reason());
+        SDL_Log("Failed to load image: %s, %s", path.string().data(), stbi_failure_reason());
         return nullptr;
     }
     SDL_GPUTexture* texture;
@@ -30,7 +32,7 @@ SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, c
         texture = SDL_CreateGPUTexture(device, &info);
         if (!texture)
         {
-            SDL_Log("Failed to create texture: %s, %s", path, SDL_GetError());
+            SDL_Log("Failed to create texture: %s, %s", path.string().data(), SDL_GetError());
             stbi_image_free(src_data);
             return nullptr;
         }
@@ -42,7 +44,7 @@ SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, c
         transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
         if (!transfer_buffer)
         {
-            SDL_Log("Failed to create transfer buffer: %s, %s", path, SDL_GetError());
+            SDL_Log("Failed to create transfer buffer: %s, %s", path.string().data(), SDL_GetError());
             stbi_image_free(src_data);
             SDL_ReleaseGPUTexture(device, texture);
             return nullptr;
@@ -51,7 +53,7 @@ SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, c
     void* dst_data = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
     if (!dst_data)
     {
-        SDL_Log("Failed to map transfer buffer: %s, %s", path, SDL_GetError());
+        SDL_Log("Failed to map transfer buffer: %s, %s", path.string().data(), SDL_GetError());
         stbi_image_free(src_data);
         SDL_ReleaseGPUTexture(device, texture);
         return nullptr;

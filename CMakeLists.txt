@@ -29,7 +29,7 @@ set_target_properties(SDLx_model PROPERTIES CXX_STANDARD 23)
 add_library(SDLx_model::SDLx_model ALIAS SDLx_model)
 
 if(PROJECT_IS_TOP_LEVEL)
-    add_executable(SDLx_model_test WIN32 test/test.cpp test/shader.cpp test/pipeline.cpp)
+    add_executable(SDLx_model_test WIN32 test/main.cpp test/shader.cpp test/pipeline.cpp)
     target_include_directories(SDLx_model_test PUBLIC test/lib/json)
     target_link_libraries(SDLx_model_test PRIVATE SDL3::SDL3 SDLx_model::SDLx_model glm)
     set_target_properties(SDLx_model_test PROPERTIES CXX_STANDARD 23)

@@ -30,7 +30,8 @@ typedef struct SDLx_ModelVoxObj
     SDL_GPUBuffer* vertex_buffer;
     SDL_GPUBuffer* index_buffer;
     SDL_GPUTexture* palette_texture;
-    uint16_t num_indices;
+    Uint16 num_indices;
+    SDL_GPUIndexElementSize index_element_size;
 } SDLx_ModelVoxObj;
 
 typedef struct SDLx_ModelVoxRaw
@@ -45,7 +46,13 @@ typedef struct SDLx_Model
         SDLx_ModelVoxObj vox_obj;
         SDLx_ModelVoxRaw vox_raw;
     };
+    struct
+    {
+        float x;
+        float y;
+        float z;
+    } min, max;
 } SDLx_Model;
 
-SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type);
+SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* name, SDLx_ModelType type);
 void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model);

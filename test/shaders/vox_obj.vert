@@ -45,7 +45,7 @@ float3 GetNormal(uint2 vertex)
 
 float2 GetTexcoord(uint2 vertex)
 {
-    return float2(float((vertex.y >> 3) & 0xFFu) / 256.0f, 0.5f);
+    return float2(float((vertex.y >> 3) & 0xFFu) / 255.0f, 0.5f);
 }
 
 Output main(Input input)

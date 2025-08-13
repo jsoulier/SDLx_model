@@ -1,3 +1,8 @@
+cbuffer UniformLight : register(b0, space3)
+{
+    float4 Light : packoffset(c0);
+};
+
 Texture2D<float4> PaletteTexture : register(t0, space2);
 SamplerState PaletteSampler : register(s0, space2);
 
@@ -9,5 +14,7 @@ struct Input
 
 float4 main(Input input) : SV_Target
 {
-    return PaletteTexture.Sample(PaletteSampler, input.Texcoord);
+    float lighting = saturate(dot(input.Normal, -Light.xyz)) + Light.w;
+    float4 albedo = PaletteTexture.Sample(PaletteSampler, input.Texcoord);
+    return albedo * lighting;
 }

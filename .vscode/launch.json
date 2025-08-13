@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/sdlx_model_test.exe",
             "args": [
-                "${workspaceFolder}/test/models/vox_obj/monu1"
+                "${workspaceFolder}/test/models/vox_raw/monu1"
             ],
             "cwd": "${workspaceFolder}/build/bin",
             "preLaunchTask": "CMake: build"

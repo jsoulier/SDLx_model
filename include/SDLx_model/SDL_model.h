@@ -11,7 +11,6 @@ typedef enum SDLx_ModelType
 } SDLx_ModelType;
 
 /*
- * LSB to MSB
  * 00-07: x magnitude (8 bits)
  * 08-08: x direction (1 bits)
  * 09-16: y magnitude (8 bits)
@@ -34,8 +33,36 @@ typedef struct SDLx_ModelVoxObj
     SDL_GPUIndexElementSize index_element_size;
 } SDLx_ModelVoxObj;
 
+struct SDLx_ModelVoxRawVertex
+{
+    float x;
+    float y;
+    float z;
+};
+
+struct SDLx_ModelVoxRawInstance
+{
+    float x;
+    float y;
+    float z;
+
+    /*
+     * 00-07: a (8 bits)
+     * 08-15: b (8 bits)
+     * 16-23: g (8 bits)
+     * 24-31: r (8 bits)
+     */
+    Uint32 color;
+};
+
 typedef struct SDLx_ModelVoxRaw
 {
+    SDL_GPUBuffer* vertex_buffer;
+    SDL_GPUBuffer* index_buffer;
+    SDL_GPUBuffer* instance_buffer;
+    Uint16 num_indices;
+    Uint32 num_instances;
+    SDL_GPUIndexElementSize index_element_size;
 } SDLx_ModelVoxRaw;
 
 typedef struct SDLx_Model
@@ -54,5 +81,5 @@ typedef struct SDLx_Model
     } min, max;
 } SDLx_Model;
 
-SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* name, SDLx_ModelType type);
+SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type);
 void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model);

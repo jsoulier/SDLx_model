@@ -90,7 +90,7 @@ static bool Init()
     return true;
 }
 
-static bool LoadModel(const char* path)
+static bool Load(const char* path)
 {
     if (model)
     {
@@ -182,12 +182,14 @@ static void Draw()
     if (!render_pass)
     {
         SDL_Log("Failed to begin render pass: %s", SDL_GetError());
+        SDL_SubmitGPUCommandBuffer(command_buffer);
         return;
     }
     if (!model)
     {
         SDL_EndGPURenderPass(render_pass);
         SDL_SubmitGPUCommandBuffer(command_buffer);
+        return;
     }
     glm::vec3 vector;
     vector.x = std::cos(pitch) * std::cos(yaw);
@@ -234,7 +236,7 @@ int main(int argc, char** argv)
     {
         return 1;
     }
-    if (argc > 1 && !LoadModel(argv[1]))
+    if (argc > 1 && !Load(argv[1]))
     {
         return 1;
     }
@@ -261,7 +263,7 @@ int main(int argc, char** argv)
                 distance = std::max(1.0f, distance - event.wheel.y * Zoom);
                 break;
             case SDL_EVENT_DROP_FILE:
-                LoadModel(event.drop.data);
+                Load(event.drop.data);
                 break;
             }
         }

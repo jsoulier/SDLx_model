@@ -1,13 +1,14 @@
 #include <SDL3/SDL.h>
 #include <SDLx_model/SDL_model.h>
 
+#include <cstdlib>
 #include <filesystem>
 #include <limits>
 #include <vector>
 
 #include "internal.hpp"
 
-SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* name, SDLx_ModelType type)
+SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type)
 {
     if (!device)
     {
@@ -19,25 +20,26 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, co
         SDL_InvalidParamError(copy_pass);
         return nullptr;
     }
-    if (!name)
+    if (!path)
     {
-        SDL_InvalidParamError(name);
+        SDL_InvalidParamError(path);
         return nullptr;
     }
-    std::filesystem::path path = name;
+    std::filesystem::path file = path;
     if (type == SDLX_MODELTYPE_INVALID)
     {
         static std::vector<std::filesystem::path> Extensions[SDLX_MODELTYPE_COUNT] =
         {
+            {},
             {".vox", ".obj", ".png"},
             {".vox"},
         };
-        for (int i = 0; i < SDLX_MODELTYPE_COUNT && type == SDLX_MODELTYPE_INVALID; i++)
+        for (int i = SDLX_MODELTYPE_INVALID; i < SDLX_MODELTYPE_COUNT && type == SDLX_MODELTYPE_INVALID; i++)
         {
             type = SDLx_ModelType(i);
             for (const std::filesystem::path& extension : Extensions[i])
             {
-                if (!std::filesystem::exists(path.replace_extension(extension)))
+                if (!std::filesystem::exists(file.replace_extension(extension)))
                 {
                     type = SDLX_MODELTYPE_INVALID;
                     break;
@@ -46,14 +48,14 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, co
         }
         if (type == SDLX_MODELTYPE_INVALID)
         {
-            SDL_Log("Failed to deduce type: %s", name);
+            SDL_Log("Failed to deduce type: %s", path);
             return nullptr;
         }
     }
-    SDLx_Model* model = new SDLx_Model();
+    SDLx_Model* model = static_cast<SDLx_Model*>(std::calloc(1, sizeof(SDLx_Model)));
     if (!model)
     {
-        SDL_SetError("Failed to allocate model: %s", name);
+        SDL_SetError("Failed to allocate model: %s", path);
         return nullptr;
     }
     model->min.x = std::numeric_limits<float>::max();
@@ -66,15 +68,15 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, co
     switch (type)
     {
     case SDLX_MODELTYPE_VOXOBJ:
-        success = LoadVoxObj(model, device, copy_pass, path);
+        success = LoadVoxObj(model, device, copy_pass, file);
         break;
     case SDLX_MODELTYPE_VOXRAW:
-        success = LoadVoxRaw(model, device, copy_pass, path);
+        success = LoadVoxRaw(model, device, copy_pass, file);
         break;
     }
     if (!success)
     {
-        SDL_Log("Failed to create model: %s", name);
+        SDL_Log("Failed to create model: %s", path);
         delete model;
         return nullptr;
     }
@@ -103,5 +105,5 @@ void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model)
     case SDLX_MODELTYPE_VOXRAW:
         break;
     }
-    delete model;
+    std::free(model);
 }

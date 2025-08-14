@@ -60,9 +60,12 @@ static SDLx_ModelVoxObjVertex Parse(SDLx_Model* model, const tinyobj::attrib_t& 
     SDL_assert(magnitude_y < 256);
     SDL_assert(magnitude_z < 256);
     SDL_assert(texcoord < 256);
-    model->max.x = std::max(float(std::abs(position_x)), model->max.x);
-    model->max.y = std::max(float(std::abs(position_y)), model->max.y);
-    model->max.z = std::max(float(std::abs(position_z)), model->max.z);
+    model->min.x = std::min(float(position_x), model->min.x);
+    model->min.y = std::min(float(position_y), model->min.y);
+    model->min.z = std::min(float(position_z), model->min.z);
+    model->max.x = std::max(float(position_x), model->max.x);
+    model->max.y = std::max(float(position_y), model->max.y);
+    model->max.z = std::max(float(position_z), model->max.z);
     SDLx_ModelVoxObjVertex vertex{};
     vertex |= (magnitude_x & 0xFF) << 0;
     vertex |= (direction_x & 0x01) << 8;
@@ -164,8 +167,5 @@ bool LoadVoxObj(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
         return false;
     }
     model->vox_obj.index_element_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
-    model->min.x = -model->max.x;
-    model->min.y = 0.0f;
-    model->min.z = -model->max.z;
     return true;
 }

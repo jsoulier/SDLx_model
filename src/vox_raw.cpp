@@ -51,13 +51,7 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
         file.read(chunk_id, 4);
         uint32_t chunk_size = Read<uint32_t>(file);
         uint32_t child_chunk_size = Read<uint32_t>(file);
-        if (!std::strncmp(chunk_id, "SIZE", 4))
-        {
-            model->max.x = Read<uint32_t>(file);
-            model->max.y = Read<uint32_t>(file);
-            model->max.z = Read<uint32_t>(file);
-        }
-        else if (!std::strncmp(chunk_id, "XYZI", 4))
+        if (!std::strncmp(chunk_id, "XYZI", 4))
         {
             voxels.resize(Read<uint32_t>(file));
             for (uint32_t i = 0; i < voxels.size(); i++)
@@ -107,15 +101,40 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
         SDL_Log("Failed to map transfer buffer: %s", SDL_GetError());
         return false;
     }
+    /* TODO: refactor! */
+    for (uint32_t i = 0; i < voxels.size(); i++)
+    {
+        model->min.x = std::min(float(voxels[i].x), model->min.x);
+        model->min.y = std::min(float(voxels[i].z), model->min.y);
+        model->min.z = std::min(float(voxels[i].y), model->min.z);
+        model->max.x = std::max(float(voxels[i].x), model->max.x);
+        model->max.y = std::max(float(voxels[i].z), model->max.y);
+        model->max.z = std::max(float(voxels[i].y), model->max.z);
+    }
     for (uint32_t i = 0; i < voxels.size(); i++)
     {
         SDL_assert(voxels[i].palette_index < palette.size());
         SDLx_ModelVoxRawInstance instance;
-        instance.x = voxels[i].y;
+        instance.x = voxels[i].x;
         instance.y = voxels[i].z;
-        instance.z = voxels[i].x;
-        instance.color = palette[voxels[i].palette_index];
+        instance.z = model->max.z - voxels[i].y;
+        instance.color = SDL_Swap32(palette[voxels[i].palette_index]);
         instance_data[i] = instance;
+    }
+    model->min.x = std::numeric_limits<float>::max();
+    model->min.y = std::numeric_limits<float>::max();
+    model->min.z = std::numeric_limits<float>::max();
+    model->max.x = std::numeric_limits<float>::min();
+    model->max.y = std::numeric_limits<float>::min();
+    model->max.z = std::numeric_limits<float>::min();
+    for (uint32_t i = 0; i < voxels.size(); i++)
+    {
+        model->min.x = std::min(float(instance_data[i].x), model->min.x);
+        model->min.y = std::min(float(instance_data[i].y), model->min.y);
+        model->min.z = std::min(float(instance_data[i].z), model->min.z);
+        model->max.x = std::max(float(instance_data[i].x), model->max.x);
+        model->max.y = std::max(float(instance_data[i].y), model->max.y);
+        model->max.z = std::max(float(instance_data[i].z), model->max.z);
     }
     SDL_GPUTransferBufferLocation location{};
     SDL_GPUBufferRegion region{};
@@ -135,8 +154,5 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
     model->vox_raw.num_indices = 36;
     model->vox_raw.num_instances = voxels.size();
     model->vox_raw.index_element_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
-    model->min.x = 0.0f;
-    model->min.y = 0.0f;
-    model->min.z = 0.0f;
     return true;
 }

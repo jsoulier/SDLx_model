@@ -19,10 +19,10 @@ struct Output
 Output main(Input input)
 {
     Output output;
-    output.Color.r = (input.Color >> 24) & 0xFFu;
-    output.Color.g = (input.Color >> 16) & 0xFFu;
-    output.Color.b = (input.Color >> 8) & 0xFFu;
-    output.Color.a = (input.Color >> 0) & 0xFFu;
+    output.Color.r = ((input.Color >> 24) & 0xFFu) / 255.0f;
+    output.Color.g = ((input.Color >> 16) & 0xFFu) / 255.0f;
+    output.Color.b = ((input.Color >> 8) & 0xFFu) / 255.0f;
+    output.Color.a = ((input.Color >> 0) & 0xFFu) / 255.0f;
     output.Position = mul(ViewProj, float4(input.Instance + input.Position, 1.0f));
     return output;
 }

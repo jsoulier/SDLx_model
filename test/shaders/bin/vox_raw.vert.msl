@@ -25,7 +25,7 @@ vertex main0_out main0(main0_in in [[stage_in]], constant type_UniformViewProj& 
 {
     main0_out out = {};
     out.gl_Position = UniformViewProj.ViewProj * float4(in.in_var_TEXCOORD1 + in.in_var_TEXCOORD0, 1.0);
-    out.out_var_TEXCOORD0 = float4(float((in.in_var_TEXCOORD2 >> 24u) & 255u), float((in.in_var_TEXCOORD2 >> 16u) & 255u), float((in.in_var_TEXCOORD2 >> 8u) & 255u), float((in.in_var_TEXCOORD2 >> 0u) & 255u));
+    out.out_var_TEXCOORD0 = float4(float((in.in_var_TEXCOORD2 >> 24u) & 255u) * 0.0039215688593685626983642578125, float((in.in_var_TEXCOORD2 >> 16u) & 255u) * 0.0039215688593685626983642578125, float((in.in_var_TEXCOORD2 >> 8u) & 255u) * 0.0039215688593685626983642578125, float((in.in_var_TEXCOORD2 >> 0u) & 255u) * 0.0039215688593685626983642578125);
     return out;
 }
 

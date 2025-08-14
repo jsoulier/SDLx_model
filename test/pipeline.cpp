@@ -94,8 +94,8 @@ SDL_GPUGraphicsPipeline* CreateVoxRawPipeline(SDL_GPUDevice* device, SDL_Window*
     info.depth_stencil_state.enable_depth_test = true;
     info.depth_stencil_state.enable_depth_write = true;
     info.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS;
-    // info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
-    // info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
+    info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+    info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
     SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(device, &info);
     if (!pipeline)
     {

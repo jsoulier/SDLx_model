@@ -14,7 +14,7 @@ struct Input
 
 float4 main(Input input) : SV_Target
 {
-    float lighting = saturate(dot(input.Normal, -Light.xyz)) + Light.w;
-    float4 albedo = PaletteTexture.Sample(PaletteSampler, input.Texcoord);
-    return albedo * lighting;
+    float light = saturate(dot(input.Normal, -Light.xyz)) + Light.w;
+    float4 color = PaletteTexture.Sample(PaletteSampler, input.Texcoord);
+    return color * light;
 }

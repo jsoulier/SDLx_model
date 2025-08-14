@@ -5,7 +5,7 @@ cbuffer UniformViewProj : register(b0, space1)
 
 struct Input
 {
-    uint2 Vertex : POSITION;
+    uint2 Vertex : TEXCOORD0;
 };
 
 struct Output

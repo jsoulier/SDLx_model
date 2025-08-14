@@ -59,19 +59,18 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
         }
         else if (!std::strncmp(chunk_id, "XYZI", 4))
         {
-            uint32_t num_voxels = Read<uint32_t>(file);
-            voxels.reserve(num_voxels);
-            for (uint32_t i = 0; i < num_voxels; i++)
+            voxels.resize(Read<uint32_t>(file));
+            for (uint32_t i = 0; i < voxels.size(); i++)
             {
-                voxels.emplace_back(Read<Voxel>(file));
+                voxels[i] = Read<Voxel>(file);
             }
         }
-        else if (std::strncmp(chunk_id, "RGBA", 4) == 0)
+        else if (!std::strncmp(chunk_id, "RGBA", 4))
         {
-            palette.reserve(256);
-            for (int i = 0; i < 256; i++)
+            palette.resize(256);
+            for (int i = 0; i < 254; i++)
             {
-                palette.emplace_back(Read<uint32_t>(file));
+                palette[i + 1] = Read<uint32_t>(file);
             }
         }
         else
@@ -79,5 +78,65 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
             file.seekg(chunk_size, std::ios::cur);
         }
     }
+    SDL_GPUTransferBuffer* transfer_buffer;
+    {
+        SDL_GPUTransferBufferCreateInfo info{};
+        info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        info.size = voxels.size() * sizeof(SDLx_ModelVoxRawInstance);
+        transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
+        if (!transfer_buffer)
+        {
+            SDL_Log("Failed to create transfer buffer: %s", SDL_GetError());
+            return false;
+        }
+    }
+    {
+        SDL_GPUBufferCreateInfo info{};
+        info.usage = SDL_GPU_BUFFERUSAGE_VERTEX | SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ | SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
+        info.size = voxels.size() * sizeof(SDLx_ModelVoxRawInstance);
+        model->vox_raw.instance_buffer = SDL_CreateGPUBuffer(device, &info);
+        if (!model->vox_raw.instance_buffer)
+        {
+            SDL_Log("Failed to create buffer: %s", SDL_GetError());
+            return false;
+        }
+    }
+    SDLx_ModelVoxRawInstance* instance_data = static_cast<SDLx_ModelVoxRawInstance*>(SDL_MapGPUTransferBuffer(device, transfer_buffer, false));
+    if (!instance_data)
+    {
+        SDL_Log("Failed to map transfer buffer: %s", SDL_GetError());
+        return false;
+    }
+    for (uint32_t i = 0; i < voxels.size(); i++)
+    {
+        SDL_assert(voxels[i].palette_index < palette.size());
+        SDLx_ModelVoxRawInstance instance;
+        instance.x = voxels[i].y;
+        instance.y = voxels[i].z;
+        instance.z = voxels[i].x;
+        instance.color = palette[voxels[i].palette_index];
+        instance_data[i] = instance;
+    }
+    SDL_GPUTransferBufferLocation location{};
+    SDL_GPUBufferRegion region{};
+    location.transfer_buffer = transfer_buffer;
+    region.buffer = model->vox_raw.instance_buffer;
+    region.size = voxels.size() * sizeof(SDLx_ModelVoxRawInstance);
+    SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+    SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
+    SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+    model->vox_raw.vertex_buffer = CreateCubeVertexBuffer(device, copy_pass);
+    model->vox_raw.index_buffer = CreateCubeIndexBuffer(device, copy_pass);
+    if (!model->vox_raw.vertex_buffer || !model->vox_raw.index_buffer)
+    {
+        SDL_Log("Failed to create buffer(s)");
+        return false;
+    }
+    model->vox_raw.num_indices = 36;
+    model->vox_raw.num_instances = voxels.size();
+    model->vox_raw.index_element_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
+    model->min.x = 0.0f;
+    model->min.y = 0.0f;
+    model->min.z = 0.0f;
     return true;
 }

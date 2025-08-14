@@ -103,6 +103,9 @@ void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model)
         SDL_ReleaseGPUTexture(device, model->vox_obj.palette_texture);
         break;
     case SDLX_MODELTYPE_VOXRAW:
+        SDL_ReleaseGPUBuffer(device, model->vox_raw.vertex_buffer);
+        SDL_ReleaseGPUBuffer(device, model->vox_raw.index_buffer);
+        SDL_ReleaseGPUBuffer(device, model->vox_raw.instance_buffer);
         break;
     }
     std::free(model);

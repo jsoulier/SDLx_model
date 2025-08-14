@@ -10,6 +10,13 @@ typedef enum SDLx_ModelType
     SDLX_MODELTYPE_COUNT,
 } SDLx_ModelType;
 
+struct SDLx_ModelVertex
+{
+    float x;
+    float y;
+    float z;
+};
+
 /*
  * 00-07: x magnitude (8 bits)
  * 08-08: x direction (1 bits)
@@ -26,19 +33,12 @@ typedef Uint64 SDLx_ModelVoxObjVertex;
 
 typedef struct SDLx_ModelVoxObj
 {
-    SDL_GPUBuffer* vertex_buffer;
-    SDL_GPUBuffer* index_buffer;
+    SDL_GPUBuffer* vertex_buffer;    /* SDLx_ModelVoxObjVertex */
+    SDL_GPUBuffer* index_buffer;     /* Uint16 or Uint32 */
     SDL_GPUTexture* palette_texture;
     Uint16 num_indices;
     SDL_GPUIndexElementSize index_element_size;
 } SDLx_ModelVoxObj;
-
-struct SDLx_ModelVoxRawVertex
-{
-    float x;
-    float y;
-    float z;
-};
 
 struct SDLx_ModelVoxRawInstance
 {
@@ -57,9 +57,9 @@ struct SDLx_ModelVoxRawInstance
 
 typedef struct SDLx_ModelVoxRaw
 {
-    SDL_GPUBuffer* vertex_buffer;
-    SDL_GPUBuffer* index_buffer;
-    SDL_GPUBuffer* instance_buffer;
+    SDL_GPUBuffer* vertex_buffer;   /* SDLx_ModelVertex */
+    SDL_GPUBuffer* index_buffer;    /* Uint16 or Uint32 */
+    SDL_GPUBuffer* instance_buffer; /* SDLx_ModelVoxRawInstance */
     Uint16 num_indices;
     Uint32 num_instances;
     SDL_GPUIndexElementSize index_element_size;

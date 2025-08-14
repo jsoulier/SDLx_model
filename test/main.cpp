@@ -224,6 +224,18 @@ static void Draw()
         }
         break;
     case SDLX_MODELTYPE_VOXRAW:
+        {
+            SDL_GPUBufferBinding vertex_buffers[2]{};
+            SDL_GPUBufferBinding index_buffer{};
+            vertex_buffers[0].buffer = model->vox_raw.vertex_buffer;
+            vertex_buffers[1].buffer = model->vox_raw.instance_buffer;
+            index_buffer.buffer = model->vox_raw.index_buffer;
+            SDL_BindGPUGraphicsPipeline(render_pass, pipelines[SDLX_MODELTYPE_VOXRAW]);
+            SDL_PushGPUVertexUniformData(command_buffer, 0, &view_proj_matrix, sizeof(view_proj_matrix));
+            SDL_BindGPUVertexBuffers(render_pass, 0, vertex_buffers, 2);
+            SDL_BindGPUIndexBuffer(render_pass, &index_buffer, model->vox_raw.index_element_size);
+            SDL_DrawGPUIndexedPrimitives(render_pass, model->vox_raw.num_indices, model->vox_raw.num_instances, 0, 0, 0);
+        }
         break;
     }
     SDL_EndGPURenderPass(render_pass);

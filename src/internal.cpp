@@ -72,3 +72,117 @@ SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, s
     SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
     return texture;
 }
+
+SDL_GPUBuffer* CreateCubeVertexBuffer(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass)
+{
+    static const SDLx_ModelVertex Vertices[8] =
+    {
+       {-0.5f, -0.5f,  0.5f },
+       { 0.5f, -0.5f,  0.5f },
+       { 0.5f,  0.5f,  0.5f },
+       {-0.5f,  0.5f,  0.5f },
+       {-0.5f, -0.5f, -0.5f },
+       { 0.5f, -0.5f, -0.5f },
+       { 0.5f,  0.5f, -0.5f },
+       {-0.5f,  0.5f, -0.5f },
+    };
+    SDL_GPUTransferBuffer* transfer_buffer;
+    SDL_GPUBuffer* buffer;
+    {
+        SDL_GPUTransferBufferCreateInfo info{};
+        info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        info.size = sizeof(Vertices);
+        transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
+        if (!transfer_buffer)
+        {
+            SDL_Log("Failed to create transfer buffer: %s", SDL_GetError());
+            return nullptr;
+        }
+    }
+    {
+        SDL_GPUBufferCreateInfo info{};
+        info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
+        info.size = sizeof(Vertices);
+        buffer = SDL_CreateGPUBuffer(device, &info);
+        if (!buffer)
+        {
+            SDL_Log("Failed to create buffer: %s", SDL_GetError());
+            return nullptr;
+        }
+    }
+    void* vertex_data = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
+    if (!vertex_data)
+    {
+        SDL_Log("Failed to map transfer buffer: %s", SDL_GetError());
+        return nullptr;
+    }
+    std::memcpy(vertex_data, Vertices, sizeof(Vertices));
+    SDL_GPUTransferBufferLocation location{};
+    SDL_GPUBufferRegion region{};
+    location.transfer_buffer = transfer_buffer;
+    region.buffer = buffer;
+    region.size = sizeof(Vertices);
+    SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+    SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
+    SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+    return buffer;
+}
+
+SDL_GPUBuffer* CreateCubeIndexBuffer(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass)
+{
+    static const uint16_t Indices[36] =
+    {
+        0, 1, 2,
+        0, 2, 3,
+        5, 4, 7,
+        5, 7, 6,
+        4, 0, 3,
+        4, 3, 7,
+        1, 5, 6,
+        1, 6, 2,
+        3, 2, 6,
+        3, 6, 7,
+        4, 5, 1,
+        4, 1, 0,
+    };
+    SDL_GPUTransferBuffer* transfer_buffer;
+    SDL_GPUBuffer* buffer;
+    {
+        SDL_GPUTransferBufferCreateInfo info{};
+        info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        info.size = sizeof(Indices);
+        transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
+        if (!transfer_buffer)
+        {
+            SDL_Log("Failed to create transfer buffer: %s", SDL_GetError());
+            return nullptr;
+        }
+    }
+    {
+        SDL_GPUBufferCreateInfo info{};
+        info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
+        info.size = sizeof(Indices);
+        buffer = SDL_CreateGPUBuffer(device, &info);
+        if (!buffer)
+        {
+            SDL_Log("Failed to create buffer: %s", SDL_GetError());
+            return nullptr;
+        }
+    }
+    void* index_data = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
+    if (!index_data)
+    {
+        SDL_Log("Failed to map transfer buffer: %s", SDL_GetError());
+        return nullptr;
+    }
+    std::memcpy(index_data, Indices, sizeof(Indices));
+    SDL_GPUTransferBufferLocation location{};
+    SDL_GPUBufferRegion region{};
+    location.transfer_buffer = transfer_buffer;
+    region.buffer = buffer;
+    region.size = sizeof(Indices);
+    SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+    SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
+    SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+    return buffer;
+}

@@ -2,7 +2,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "win32",
+            "name": "vox_obj",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/sdlx_model_test.exe",
+            "args": [
+                "${workspaceFolder}/test/models/vox_obj/monu1"
+            ],
+            "cwd": "${workspaceFolder}/build/bin",
+            "preLaunchTask": "CMake: build"
+        },
+        {
+            "name": "vox_raw",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/sdlx_model_test.exe",

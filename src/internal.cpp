@@ -75,7 +75,7 @@ SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, s
 
 SDL_GPUBuffer* CreateCubeVertexBuffer(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass)
 {
-    static const SDLx_ModelVertex Vertices[8] =
+    static const SDLx_ModelVec3 Vertices[8] =
     {
        {-0.5f, -0.5f,  0.5f },
        { 0.5f, -0.5f,  0.5f },

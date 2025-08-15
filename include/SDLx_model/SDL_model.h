@@ -10,12 +10,12 @@ typedef enum SDLx_ModelType
     SDLX_MODELTYPE_COUNT,
 } SDLx_ModelType;
 
-struct SDLx_ModelVertex
+typedef struct SDLx_ModelVec3
 {
     float x;
     float y;
     float z;
-};
+} SDLx_ModelVec3;
 
 /*
  * 00-07: x magnitude (8 bits)
@@ -40,11 +40,9 @@ typedef struct SDLx_ModelVoxObj
     SDL_GPUIndexElementSize index_element_size;
 } SDLx_ModelVoxObj;
 
-struct SDLx_ModelVoxRawInstance
+typedef struct SDLx_ModelVoxRawInstance
 {
-    float x;
-    float y;
-    float z;
+    SDLx_ModelVec3 position;
 
     /*
      * 00-07: a (8 bits)
@@ -53,11 +51,13 @@ struct SDLx_ModelVoxRawInstance
      * 24-31: r (8 bits)
      */
     Uint32 color;
-};
+
+    SDLx_ModelVec3 velocity;
+} SDLx_ModelVoxRawInstance;
 
 typedef struct SDLx_ModelVoxRaw
 {
-    SDL_GPUBuffer* vertex_buffer;   /* SDLx_ModelVertex */
+    SDL_GPUBuffer* vertex_buffer;   /* SDLx_ModelVec3 */
     SDL_GPUBuffer* index_buffer;    /* Uint16 or Uint32 */
     SDL_GPUBuffer* instance_buffer; /* SDLx_ModelVoxRawInstance */
     Uint16 num_indices;

@@ -8,6 +8,7 @@ struct Input
     float3 Position : TEXCOORD0;
     float3 Instance : TEXCOORD1;
     uint Color : TEXCOORD2;
+    float3 Velocity : TEXCOORD3;
 };
 
 struct Output

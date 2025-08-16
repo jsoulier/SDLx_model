@@ -11,17 +11,17 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, co
 {
     if (!device)
     {
-        SDL_InvalidParamError(device);
+        SDL_InvalidParamError("device");
         return nullptr;
     }
     if (!copy_pass)
     {
-        SDL_InvalidParamError(copy_pass);
+        SDL_InvalidParamError("copy_pass");
         return nullptr;
     }
     if (!path)
     {
-        SDL_InvalidParamError(path);
+        SDL_InvalidParamError("path");
         return nullptr;
     }
     std::filesystem::path file = path;
@@ -87,7 +87,7 @@ void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model)
 {
     if (!device)
     {
-        SDL_InvalidParamError(device);
+        SDL_InvalidParamError("device");
         return;
     }
     if (!model)

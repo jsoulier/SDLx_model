@@ -1,7 +1,6 @@
 #include <SDL3/SDL.h>
 #include <SDLx_model/SDL_model.h>
 
-#include <cstdlib>
 #include <filesystem>
 #include <limits>
 #include <vector>
@@ -52,7 +51,7 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, co
             return nullptr;
         }
     }
-    SDLx_Model* model = static_cast<SDLx_Model*>(std::calloc(1, sizeof(SDLx_Model)));
+    SDLx_Model* model = new SDLx_Model();
     if (!model)
     {
         SDL_SetError("Failed to allocate model: %s", path);
@@ -108,5 +107,5 @@ void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model)
         SDL_ReleaseGPUBuffer(device, model->vox_raw.instance_buffer);
         break;
     }
-    std::free(model);
+    delete model;
 }

@@ -45,13 +45,11 @@ static bool Init()
         SDL_Log("Failed to create window: %s", SDL_GetError());
         return false;
     }
-    SDL_PropertiesID properties = SDL_CreateProperties();
 #if SDL_PLATFORM_APPLE
-    SDL_SetBooleanProperty(properties, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METAL_BOOLEAN, true);
+    device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_MSL, true, nullptr);
 #else
-    SDL_SetBooleanProperty(properties, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN, true);
+    device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, nullptr);
 #endif
-    device = SDL_CreateGPUDeviceWithProperties(properties);
     if (!device)
     {
         SDL_Log("Failed to create device: %s", SDL_GetError());
@@ -134,7 +132,7 @@ static void Draw()
     SDL_GPUTexture* color_texture;
     uint32_t width;
     uint32_t height;
-    if (!SDL_AcquireGPUSwapchainTexture(command_buffer, window, &color_texture, &width, &height))
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer, window, &color_texture, &width, &height))
     {
         SDL_Log("Failed to acquire swapchain texture: %s", SDL_GetError());
         SDL_CancelGPUCommandBuffer(command_buffer);

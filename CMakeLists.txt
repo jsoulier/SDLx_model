@@ -26,6 +26,7 @@ add_library(SDLx_model
 target_include_directories(SDLx_model PUBLIC include)
 target_link_libraries(SDLx_model PRIVATE SDL3::SDL3)
 set_target_properties(SDLx_model PROPERTIES CXX_STANDARD 23)
+set_target_properties(SDLx_model PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 add_library(SDLx_model::SDLx_model ALIAS SDLx_model)
 
 if(PROJECT_IS_TOP_LEVEL)

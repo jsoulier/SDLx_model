@@ -88,16 +88,16 @@ bool LoadVoxObj(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
     }
     const tinyobj::attrib_t& attrib = reader.GetAttrib();
     const tinyobj::shape_t& shape = reader.GetShapes()[0];
-    uint32_t max_index_count = shape.mesh.num_face_vertices.size() * 3;
-    SDL_assert(max_index_count <= std::numeric_limits<uint16_t>::max());
+    uint32_t max_num_indices = shape.mesh.num_face_vertices.size() * 3;
+    SDL_assert(max_num_indices <= std::numeric_limits<uint16_t>::max());
     SDL_GPUTransferBuffer* vertex_transfer_buffer;
     SDL_GPUTransferBuffer* index_transfer_buffer;
     {
         SDL_GPUTransferBufferCreateInfo info{};
         info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-        info.size = max_index_count * sizeof(SDLx_ModelVoxObjVertex);
+        info.size = max_num_indices * sizeof(SDLx_ModelVoxObjVertex);
         vertex_transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
-        info.size = max_index_count * sizeof(uint16_t);
+        info.size = max_num_indices * sizeof(uint16_t);
         index_transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
         if (!vertex_transfer_buffer || !index_transfer_buffer)
         {
@@ -112,30 +112,61 @@ bool LoadVoxObj(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
         SDL_Log("Failed to map transfer buffer(s): %s, %s", path.string().data(), SDL_GetError());
         return false;
     }
-    uint32_t vertex_count = 0;
+    uint32_t num_vertices = 0;
     model->vox_obj.num_indices = 0;
     std::unordered_map<SDLx_ModelVoxObjVertex, uint16_t> vertex_to_index;
-    for (uint16_t i = 0; i < max_index_count; i++)
+    for (uint16_t i = 0; i < max_num_indices; i++)
     {
         tinyobj::index_t index = shape.mesh.indices[i];
         SDLx_ModelVoxObjVertex vertex = Parse(model, attrib, index);
-        auto [it, inserted] = vertex_to_index.try_emplace(vertex, vertex_count);
+        auto [it, inserted] = vertex_to_index.try_emplace(vertex, num_vertices);
         if (inserted)
         {
-            vertex_data[vertex_count] = vertex;
-            index_data[model->vox_obj.num_indices++] = vertex_count++;
+            vertex_data[num_vertices] = vertex;
+            index_data[model->vox_obj.num_indices++] = num_vertices++;
         }
         else
         {
             index_data[model->vox_obj.num_indices++] = it->second;
         }
     }
+    /* TODO: hack to recenter. refactor */
+    float center_x = (model->min.x + model->max.x) * 0.5f;
+    float center_y = (model->min.y + model->max.y) * 0.5f;
+    float center_z = (model->min.z + model->max.z) * 0.5f;
+    for (uint32_t i = 0; i < num_vertices; i++)
+    {
+        int magnitude_x = (vertex_data[i] >> 0) & 0xFF;
+        int direction_x = (vertex_data[i] >> 8) & 0x01;
+        int magnitude_y = (vertex_data[i] >> 9) & 0xFF;
+        int direction_y = (vertex_data[i] >> 17) & 0x01;
+        int magnitude_z = (vertex_data[i] >> 18) & 0xFF;
+        int direction_z = (vertex_data[i] >> 26) & 0x01;
+        int position_x = (1.0f - 2.0f * direction_x) * magnitude_x;
+        int position_y = (1.0f - 2.0f * direction_y) * magnitude_y;
+        int position_z = (1.0f - 2.0f * direction_z) * magnitude_z;
+        position_x -= static_cast<int>(center_x);
+        position_y -= static_cast<int>(center_y);
+        position_z -= static_cast<int>(center_z);
+        uint64_t normal = (vertex_data[i] >> 32) & 0x07;
+        uint64_t texcoord = (vertex_data[i] >> 35) & 0xFF;
+        SDLx_ModelVoxObjVertex vertex = 0;
+        vertex |= (std::abs(position_x) & 0xFF) << 0;
+        vertex |= (position_x < 0 ? 1 : 0) << 8;
+        vertex |= (std::abs(position_y) & 0xFF) << 9;
+        vertex |= (position_y < 0 ? 1 : 0) << 17;
+        vertex |= (std::abs(position_z) & 0xFF) << 18;
+        vertex |= (position_z < 0 ? 1 : 0) << 26;
+        vertex |= (normal & 0x07) << 32;
+        vertex |= (texcoord & 0xFF) << 35;
+        vertex_data[i] = vertex;
+    }
     SDL_UnmapGPUTransferBuffer(device, vertex_transfer_buffer);
     SDL_UnmapGPUTransferBuffer(device, index_transfer_buffer);
     {
         SDL_GPUBufferCreateInfo info{};
         info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
-        info.size = vertex_count * sizeof(SDLx_ModelVoxObjVertex);
+        info.size = num_vertices * sizeof(SDLx_ModelVoxObjVertex);
         model->vox_obj.vertex_buffer = SDL_CreateGPUBuffer(device, &info);
         info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
         info.size = model->vox_obj.num_indices * sizeof(uint16_t);
@@ -151,7 +182,7 @@ bool LoadVoxObj(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
         SDL_GPUBufferRegion region{};
         location.transfer_buffer = vertex_transfer_buffer;
         region.buffer = model->vox_obj.vertex_buffer;
-        region.size = vertex_count * sizeof(SDLx_ModelVoxObjVertex);
+        region.size = num_vertices * sizeof(SDLx_ModelVoxObjVertex);
         SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
         location.transfer_buffer = index_transfer_buffer;
         region.buffer = model->vox_obj.index_buffer;
@@ -167,5 +198,10 @@ bool LoadVoxObj(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
         return false;
     }
     model->vox_obj.index_element_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
+    float half_x = (model->max.x - model->min.x) * 0.5f;
+    float half_y = (model->max.y - model->min.y) * 0.5f;
+    float half_z = (model->max.z - model->min.z) * 0.5f;
+    model->min = {-half_x, -half_y, -half_z};
+    model->max = { half_x,  half_y,  half_z};
     return true;
 }

@@ -105,41 +105,46 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
     /* TODO: refactor! */
     for (uint32_t i = 0; i < voxels.size(); i++)
     {
-        model->min.x = std::min(float(voxels[i].x), model->min.x);
-        model->min.y = std::min(float(voxels[i].z), model->min.y);
-        model->min.z = std::min(float(voxels[i].y), model->min.z);
         model->max.x = std::max(float(voxels[i].x), model->max.x);
         model->max.y = std::max(float(voxels[i].z), model->max.y);
         model->max.z = std::max(float(voxels[i].y), model->max.z);
     }
+    float center_x = model->max.x * 0.5f;
+    float center_y = model->max.y * 0.5f;
+    float center_z = model->max.z * 0.5f;
     for (uint32_t i = 0; i < voxels.size(); i++)
     {
         SDL_assert(voxels[i].palette_index < palette.size());
         SDLx_ModelVoxRawInstance instance;
-        instance.position.x = voxels[i].x;
-        instance.position.y = voxels[i].z;
-        instance.position.z = model->max.z - voxels[i].y;
+        instance.position.x = voxels[i].x - center_x;
+        instance.position.y = voxels[i].z - center_y;
+        instance.position.z = model->max.z - voxels[i].y - center_z;
         instance.color = SDL_Swap32(palette[voxels[i].palette_index]);
-        instance.velocity.x = 0.0f;
-        instance.velocity.y = 0.0f;
-        instance.velocity.z = 0.0f;
+        instance.velocity = {0.0f, 0.0f, 0.0f};
         instance_data[i] = instance;
     }
     model->min.x = std::numeric_limits<float>::max();
     model->min.y = std::numeric_limits<float>::max();
     model->min.z = std::numeric_limits<float>::max();
-    model->max.x = std::numeric_limits<float>::min();
-    model->max.y = std::numeric_limits<float>::min();
-    model->max.z = std::numeric_limits<float>::min();
+    model->max.x = std::numeric_limits<float>::lowest();
+    model->max.y = std::numeric_limits<float>::lowest();
+    model->max.z = std::numeric_limits<float>::lowest();
     for (uint32_t i = 0; i < voxels.size(); i++)
     {
-        model->min.x = std::min(float(instance_data[i].position.x), model->min.x);
-        model->min.y = std::min(float(instance_data[i].position.y), model->min.y);
-        model->min.z = std::min(float(instance_data[i].position.z), model->min.z);
-        model->max.x = std::max(float(instance_data[i].position.x), model->max.x);
-        model->max.y = std::max(float(instance_data[i].position.y), model->max.y);
-        model->max.z = std::max(float(instance_data[i].position.z), model->max.z);
+        model->min.x = std::min(instance_data[i].position.x, model->min.x);
+        model->min.y = std::min(instance_data[i].position.y, model->min.y);
+        model->min.z = std::min(instance_data[i].position.z, model->min.z);
+        model->max.x = std::max(instance_data[i].position.x, model->max.x);
+        model->max.y = std::max(instance_data[i].position.y, model->max.y);
+        model->max.z = std::max(instance_data[i].position.z, model->max.z);
     }
+    /* TODO: there's a bug where monu1 position.y needs to be offset by 0.5f
+    whereas monu2 doesn't need to be offset at all. it seems to be related to
+    even vs odd dimensions e.g. */
+    // for (uint32_t i = 0; i < voxels.size(); i++)
+    // {
+    //     instance_data[i].position.y += 0.5f;
+    // }
     SDL_GPUTransferBufferLocation location{};
     SDL_GPUBufferRegion region{};
     location.transfer_buffer = transfer_buffer;
@@ -158,5 +163,11 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_
     model->vox_raw.num_indices = 36;
     model->vox_raw.num_instances = voxels.size();
     model->vox_raw.index_element_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
+    /* NOTE: add 0.5f because cubes are -0.5f to 0.5f */
+    float half_x = (model->max.x - model->min.x) * 0.5f + 0.5f;
+    float half_y = (model->max.y - model->min.y) * 0.5f + 0.5f;
+    float half_z = (model->max.z - model->min.z) * 0.5f + 0.5f;
+    model->min = {-half_x, -half_y, -half_z};
+    model->max = { half_x,  half_y,  half_z};
     return true;
 }

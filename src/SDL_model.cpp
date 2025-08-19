@@ -60,9 +60,9 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, co
     model->min.x = std::numeric_limits<float>::max();
     model->min.y = std::numeric_limits<float>::max();
     model->min.z = std::numeric_limits<float>::max();
-    model->max.x = std::numeric_limits<float>::min();
-    model->max.y = std::numeric_limits<float>::min();
-    model->max.z = std::numeric_limits<float>::min();
+    model->max.x = std::numeric_limits<float>::lowest();
+    model->max.y = std::numeric_limits<float>::lowest();
+    model->max.z = std::numeric_limits<float>::lowest();
     bool success = false;
     switch (type)
     {

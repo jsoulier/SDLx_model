@@ -214,7 +214,7 @@ static void Draw()
             palette_texture.texture = model->vox_obj.palette_texture;
             SDL_BindGPUGraphicsPipeline(render_pass, pipelines[SDLX_MODELTYPE_VOXOBJ]);
             SDL_PushGPUVertexUniformData(command_buffer, 0, &view_proj_matrix, sizeof(view_proj_matrix));
-            SDL_PushGPUFragmentUniformData(command_buffer, 0, &Light, sizeof(Light));
+            // SDL_PushGPUFragmentUniformData(command_buffer, 0, &Light, sizeof(Light));
             SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_buffer, 1);
             SDL_BindGPUIndexBuffer(render_pass, &index_buffer, model->vox_obj.index_element_size);
             SDL_BindGPUFragmentSamplers(render_pass, 0, &palette_texture, 1);

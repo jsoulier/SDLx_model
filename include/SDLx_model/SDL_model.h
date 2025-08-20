@@ -51,8 +51,6 @@ typedef struct SDLx_ModelVoxRawInstance
      * 24-31: r (8 bits)
      */
     Uint32 color;
-
-    SDLx_ModelVec3 velocity;
 } SDLx_ModelVoxRawInstance;
 
 typedef struct SDLx_ModelVoxRaw
@@ -73,13 +71,10 @@ typedef struct SDLx_Model
         SDLx_ModelVoxObj vox_obj;
         SDLx_ModelVoxRaw vox_raw;
     };
-    struct
-    {
-        float x;
-        float y;
-        float z;
-    } min, max;
+    SDLx_ModelVec3 min;
+    SDLx_ModelVec3 max;
 } SDLx_Model;
 
-SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type);
+SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device,
+    SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type);
 void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model);

@@ -7,7 +7,8 @@
 #include "internal.hpp"
 #include "stb_image.h"
 
-SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, std::filesystem::path& path)
+SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device,
+    SDL_GPUCopyPass* copy_pass, std::filesystem::path& path)
 {
     int width;
     int height;
@@ -77,14 +78,14 @@ SDL_GPUBuffer* CreateCubeVertexBuffer(SDL_GPUDevice* device, SDL_GPUCopyPass* co
 {
     static const SDLx_ModelVec3 Vertices[8] =
     {
-       {-0.5f, -0.5f,  0.5f },
-       { 0.5f, -0.5f,  0.5f },
-       { 0.5f,  0.5f,  0.5f },
-       {-0.5f,  0.5f,  0.5f },
-       {-0.5f, -0.5f, -0.5f },
-       { 0.5f, -0.5f, -0.5f },
-       { 0.5f,  0.5f, -0.5f },
-       {-0.5f,  0.5f, -0.5f },
+       {0.0f, 0.0f, 1.0f},
+       {1.0f, 0.0f, 1.0f},
+       {1.0f, 1.0f, 1.0f},
+       {0.0f, 1.0f, 1.0f},
+       {0.0f, 0.0f, 0.0f},
+       {1.0f, 0.0f, 0.0f},
+       {1.0f, 1.0f, 0.0f},
+       {0.0f, 1.0f, 0.0f},
     };
     SDL_GPUTransferBuffer* transfer_buffer;
     SDL_GPUBuffer* buffer;

@@ -205,34 +205,36 @@ static void Draw()
     {
     case SDLX_MODELTYPE_VOXOBJ:
         {
+            SDLx_ModelVoxObj& vox_obj = model->vox_obj;
             SDL_GPUBufferBinding vertex_buffer{};
             SDL_GPUBufferBinding index_buffer{};
             SDL_GPUTextureSamplerBinding palette_texture{};
-            vertex_buffer.buffer = model->vox_obj.vertex_buffer;
-            index_buffer.buffer = model->vox_obj.index_buffer;
+            vertex_buffer.buffer = vox_obj.vertex_buffer;
+            index_buffer.buffer = vox_obj.index_buffer;
             palette_texture.sampler = nearest_sampler;
-            palette_texture.texture = model->vox_obj.palette_texture;
+            palette_texture.texture = vox_obj.palette_texture;
             SDL_BindGPUGraphicsPipeline(render_pass, pipelines[SDLX_MODELTYPE_VOXOBJ]);
             SDL_PushGPUVertexUniformData(command_buffer, 0, &view_proj_matrix, sizeof(view_proj_matrix));
             SDL_PushGPUFragmentUniformData(command_buffer, 0, &Light, sizeof(Light));
             SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_buffer, 1);
-            SDL_BindGPUIndexBuffer(render_pass, &index_buffer, model->vox_obj.index_element_size);
+            SDL_BindGPUIndexBuffer(render_pass, &index_buffer, vox_obj.index_element_size);
             SDL_BindGPUFragmentSamplers(render_pass, 0, &palette_texture, 1);
-            SDL_DrawGPUIndexedPrimitives(render_pass, model->vox_obj.num_indices, 1, 0, 0, 0);
+            SDL_DrawGPUIndexedPrimitives(render_pass, vox_obj.num_indices, 1, 0, 0, 0);
         }
         break;
     case SDLX_MODELTYPE_VOXRAW:
         {
+            SDLx_ModelVoxRaw& vox_raw = model->vox_raw;
             SDL_GPUBufferBinding vertex_buffers[2]{};
             SDL_GPUBufferBinding index_buffer{};
-            vertex_buffers[0].buffer = model->vox_raw.vertex_buffer;
-            vertex_buffers[1].buffer = model->vox_raw.instance_buffer;
-            index_buffer.buffer = model->vox_raw.index_buffer;
+            vertex_buffers[0].buffer = vox_raw.vertex_buffer;
+            vertex_buffers[1].buffer = vox_raw.instance_buffer;
+            index_buffer.buffer = vox_raw.index_buffer;
             SDL_BindGPUGraphicsPipeline(render_pass, pipelines[SDLX_MODELTYPE_VOXRAW]);
             SDL_PushGPUVertexUniformData(command_buffer, 0, &view_proj_matrix, sizeof(view_proj_matrix));
             SDL_BindGPUVertexBuffers(render_pass, 0, vertex_buffers, 2);
-            SDL_BindGPUIndexBuffer(render_pass, &index_buffer, model->vox_raw.index_element_size);
-            SDL_DrawGPUIndexedPrimitives(render_pass, model->vox_raw.num_indices, model->vox_raw.num_instances, 0, 0, 0);
+            SDL_BindGPUIndexBuffer(render_pass, &index_buffer, vox_raw.index_element_size);
+            SDL_DrawGPUIndexedPrimitives(render_pass, vox_raw.num_indices, vox_raw.num_instances, 0, 0, 0);
         }
         break;
     }

@@ -58,7 +58,7 @@ SDL_GPUGraphicsPipeline* CreateVoxRawPipeline(SDL_GPUDevice* device, SDL_Window*
     }
     SDL_GPUColorTargetDescription targets[1]{};
     SDL_GPUVertexBufferDescription buffers[2]{};
-    SDL_GPUVertexAttribute attribs[4]{};
+    SDL_GPUVertexAttribute attribs[3]{};
     targets[0].format = SDL_GetGPUSwapchainTextureFormat(device, window);
     buffers[0].slot = 0;
     buffers[0].input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
@@ -80,10 +80,6 @@ SDL_GPUGraphicsPipeline* CreateVoxRawPipeline(SDL_GPUDevice* device, SDL_Window*
     attribs[2].format = SDL_GPU_VERTEXELEMENTFORMAT_UINT;
     attribs[2].buffer_slot = 1;
     attribs[2].offset = offsetof(SDLx_ModelVoxRawInstance, color);
-    attribs[3].location = 3;
-    attribs[3].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
-    attribs[3].buffer_slot = 1;
-    attribs[3].offset = offsetof(SDLx_ModelVoxRawInstance, velocity);
     SDL_GPUGraphicsPipelineCreateInfo info{};
     info.vertex_shader = vert_shader;
     info.fragment_shader = frag_shader;
@@ -94,7 +90,7 @@ SDL_GPUGraphicsPipeline* CreateVoxRawPipeline(SDL_GPUDevice* device, SDL_Window*
     info.vertex_input_state.vertex_buffer_descriptions = buffers;
     info.vertex_input_state.num_vertex_buffers = 2;
     info.vertex_input_state.vertex_attributes = attribs;
-    info.vertex_input_state.num_vertex_attributes = 4;
+    info.vertex_input_state.num_vertex_attributes = 3;
     info.depth_stencil_state.enable_depth_test = true;
     info.depth_stencil_state.enable_depth_write = true;
     info.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS;

@@ -7,7 +7,8 @@
 
 #include "internal.hpp"
 
-SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type)
+SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device,
+    SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type)
 {
     if (!device)
     {
@@ -33,7 +34,8 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, co
             {".vox", ".obj", ".png"},
             {".vox"},
         };
-        for (int i = SDLX_MODELTYPE_INVALID; i < SDLX_MODELTYPE_COUNT && type == SDLX_MODELTYPE_INVALID; i++)
+        for (int i = SDLX_MODELTYPE_INVALID; i < SDLX_MODELTYPE_COUNT &&
+            type == SDLX_MODELTYPE_INVALID; i++)
         {
             type = SDLx_ModelType(i);
             for (const std::filesystem::path& extension : Extensions[i])

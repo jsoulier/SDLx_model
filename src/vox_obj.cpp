@@ -134,6 +134,9 @@ bool LoadVoxObj(SDLx_Model* model, SDL_GPUDevice* device,
             index_data[model->vox_obj.num_indices++] = it->second;
         }
     }
+    SDL_assert(std::fmod(model->max.x, 1.0f) == 0.0f);
+    SDL_assert(std::fmod(model->max.y, 1.0f) == 0.0f);
+    SDL_assert(std::fmod(model->max.z, 1.0f) == 0.0f);
     SDL_UnmapGPUTransferBuffer(device, vertex_transfer_buffer);
     SDL_UnmapGPUTransferBuffer(device, index_transfer_buffer);
     {

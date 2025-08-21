@@ -1,6 +1,7 @@
 #include <SDL3/SDL.h>
 #include <SDLx_model/SDL_model.h>
 
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -111,6 +112,9 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device,
         model->max.y = std::max(float(voxels[i].z + 1.0f), model->max.y);
         model->max.z = std::max(float(voxels[i].y + 1.0f), model->max.z);
     }
+    SDL_assert(std::fmod(model->max.x, 2.0f) == 0.0f);
+    SDL_assert(std::fmod(model->max.y, 2.0f) == 0.0f);
+    SDL_assert(std::fmod(model->max.z, 2.0f) == 0.0f);
     float center_x = model->max.x * 0.5f;
     float center_y = model->max.y * 0.5f;
     float center_z = model->max.z * 0.5f;

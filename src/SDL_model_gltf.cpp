@@ -205,10 +205,13 @@ bool LoadGltf(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pa
                 }
             }
             const cgltf_accessor* accessor = src_primitive.indices;
-            if (!CreateIndexBuffer(primitive, device, copy_pass, accessor))
+            if (accessor)
             {
-                SDL_Log("Failed to create index buffer");
-                return false;
+                if (!CreateIndexBuffer(primitive, device, copy_pass, accessor))
+                {
+                    SDL_Log("Failed to create index buffer");
+                    return false;
+                }
             }
             const cgltf_material* material = src_primitive.material;
             if (material)
@@ -216,11 +219,11 @@ bool LoadGltf(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pa
                 if (material->has_pbr_metallic_roughness)
                 {
                     const cgltf_texture_view& view = material->pbr_metallic_roughness.base_color_texture;
-                    if (view.texture && view.texture->image)
+                    if (view.texture && view.texture->image && view.texture->image->uri)
                     {
                         const cgltf_image* image = view.texture->image;
                         path.replace_filename(image->uri);
-                        primitive.color_texture = LoadTexture(device, copy_pass, path, true);
+                        primitive.color_texture = LoadTexture(device, copy_pass, path);
                         if (!primitive.color_texture)
                         {
                             SDL_Log("Failed to load color texture");
@@ -229,16 +232,34 @@ bool LoadGltf(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pa
                     }
                 }
                 const cgltf_texture_view& view = material->normal_texture;
-                if (view.texture && view.texture->image)
+                if (view.texture && view.texture->image && view.texture->image->uri)
                 {
                     cgltf_image* image = view.texture->image;
                     path.replace_filename(image->uri);
-                    primitive.normal_texture = LoadTexture(device, copy_pass, path, true);
+                    primitive.normal_texture = LoadTexture(device, copy_pass, path);
                     if (!primitive.normal_texture)
                     {
                         SDL_Log("Failed to load color texture");
                         return false;
                     }
+                }
+            }
+            if (!primitive.color_texture)
+            {
+                primitive.color_texture = Create1x1Texture(device, copy_pass, 0xFFFFFFFF);
+                if (!primitive.color_texture)
+                {
+                    SDL_Log("Failed to create color texture");
+                    return false;
+                }
+            }
+            if (!primitive.normal_texture)
+            {
+                primitive.normal_texture = Create1x1Texture(device, copy_pass, 0x01010101);
+                if (!primitive.normal_texture)
+                {
+                    SDL_Log("Failed to create normal texture");
+                    return false;
                 }
             }
         }

@@ -12,7 +12,7 @@
 #include "pipeline.hpp"
 
 static constexpr float Fov = 1.0f;
-static constexpr float Near = 0.1f;
+static constexpr float Near = 0.01f;
 static constexpr float Far = 1000.0f;
 static constexpr float Pan = 0.002f;
 static constexpr float Zoom = 1.0f;
@@ -120,6 +120,7 @@ static bool Load(const char* path)
     }
     SDL_EndGPUCopyPass(copy_pass);
     SDL_SubmitGPUCommandBuffer(command_buffer);
+    distance = std::max(glm::length(glm::vec3{model->max.x, model->max.y, model->max.z}), 0.01f);
     return true;
 }
 
@@ -324,7 +325,7 @@ int main(int argc, char** argv)
                     {
                         speed /= 10.0f;
                     }
-                    distance = std::max(0.1f, distance - event.wheel.y * speed);
+                    distance = std::max(0.01f, distance - event.wheel.y * speed);
                 }
                 break;
             case SDL_EVENT_DROP_FILE:

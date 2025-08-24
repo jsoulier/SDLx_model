@@ -1,9 +1,9 @@
 # SDLx_model
 
 > [!NOTE]
-> Not affiliated with [SDL](https://github.com/libsdl-org)
+> Not affiliated with [SDL](https://github.com/libsdl-org). API is WIP and may change
 
-WIP model loader library for SDL3 GPU to ease creation of GPU resources
+Lightweight model loader for SDL3 GPU to ease creation of GPU resources
 
 ### Building
 
@@ -29,11 +29,12 @@ target_link_libraries(<target>
 
 int main()
 {
-    /* ... */
-
     SDLx_Model* model = SDLx_ModelLoad(<device>, <copy_pass>, <path>, SDLX_MODELTYPE_INVALID);
-
-    /* ... */
+    if (!model)
+    {
+        SDL_Log("Failed to load model: %s", SDL_GetError());
+        return 1;
+    }
 
     switch (model->type)
     {
@@ -69,11 +70,7 @@ int main()
         break;
     }
 
-    /* ... */
-
     SDLx_ModelDestroy(device, model);
-
-    /* ... */
 }
 ```
 

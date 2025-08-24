@@ -1,18 +1,19 @@
 #include <SDL3/SDL.h>
 #include <SDLx_model/SDL_model.h>
 
+#include <cstdint>
 #include <cstring>
 #include <filesystem>
 
 #include "internal.hpp"
 #include "stb_image.h"
 
-SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const std::filesystem::path& path, bool flip_vertically)
+SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const std::filesystem::path& path)
 {
     int width;
     int height;
     int channels;
-    stbi_set_flip_vertically_on_load_thread(flip_vertically);
+    stbi_set_flip_vertically_on_load_thread(true);
     void* src_data = stbi_load(path.string().data(), &width, &height, &channels, 4);
     if (!src_data)
     {
@@ -68,6 +69,60 @@ SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, c
     region.texture = texture;
     region.w = width;
     region.h = height;
+    region.d = 1;
+    SDL_UploadToGPUTexture(copy_pass, &info, &region, true);
+    SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+    return texture;
+}
+
+SDL_GPUTexture* Create1x1Texture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, uint32_t color)
+{
+    SDL_GPUTexture* texture;
+    SDL_GPUTransferBuffer* transfer_buffer;
+    {
+        SDL_GPUTextureCreateInfo info{};
+        info.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+        info.type = SDL_GPU_TEXTURETYPE_2D;
+        info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        info.width = 1;
+        info.height = 1;
+        info.layer_count_or_depth = 1;
+        info.num_levels = 1;
+        texture = SDL_CreateGPUTexture(device, &info);
+        if (!texture)
+        {
+            SDL_Log("Failed to create 1x1 texture: %s", SDL_GetError());
+            return nullptr;
+        }
+    }
+    {
+        SDL_GPUTransferBufferCreateInfo info{};
+        info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        info.size = 4;
+        transfer_buffer = SDL_CreateGPUTransferBuffer(device, &info);
+        if (!transfer_buffer)
+        {
+            SDL_Log("Failed to create transfer buffer: %s", SDL_GetError());
+            SDL_ReleaseGPUTexture(device, texture);
+            return nullptr;
+        }
+    }
+    void* data = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
+    if (!data)
+    {
+        SDL_Log("Failed to map transfer buffer: %s", SDL_GetError());
+        SDL_ReleaseGPUTexture(device, texture);
+        SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+        return nullptr;
+    }
+    std::memcpy(data, &color, 4);
+    SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+    SDL_GPUTextureTransferInfo info{};
+    SDL_GPUTextureRegion region{};
+    info.transfer_buffer = transfer_buffer;
+    region.texture = texture;
+    region.w = 1;
+    region.h = 1;
     region.d = 1;
     SDL_UploadToGPUTexture(copy_pass, &info, &region, true);
     SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);

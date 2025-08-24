@@ -3,7 +3,7 @@ cbuffer UniformViewProj : register(b0, space1)
     float4x4 ViewProj : packoffset(c0);
 };
 
-cbuffer UniformViewProj : register(b1, space1)
+cbuffer UniformModel : register(b1, space1)
 {
     float4x4 Model : packoffset(c0);
 };

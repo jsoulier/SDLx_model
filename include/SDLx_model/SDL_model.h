@@ -60,13 +60,20 @@ typedef struct SDLx_ModelMesh
 {
     SDLx_ModelPrimitive* primitives;
     int num_primitives;
-    SDLx_ModelMatrix transform;
 } SDLx_ModelMesh;
+
+typedef struct SDLx_ModelNode
+{
+    SDLx_ModelMesh* mesh;
+    SDLx_ModelMatrix transform;
+} SDLx_ModelNode;
 
 typedef struct SDLx_ModelGltf
 {
     SDLx_ModelMesh* meshes;
     int num_meshes;
+    SDLx_ModelNode* nodes;
+    int num_nodes;
 } SDLx_ModelGltf;
 
 /*

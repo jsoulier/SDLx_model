@@ -8,7 +8,7 @@ struct type_UniformViewProj
     float4x4 ViewProj;
 };
 
-struct type_UniformViewProj_1
+struct type_UniformModel
 {
     float4x4 Model;
 };
@@ -27,10 +27,10 @@ struct main0_in
     float3 in_var_TEXCOORD2 [[attribute(2)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant type_UniformViewProj& UniformViewProj [[buffer(0)]], constant type_UniformViewProj_1& UniformViewProj_1 [[buffer(1)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant type_UniformViewProj& UniformViewProj [[buffer(0)]], constant type_UniformModel& UniformModel [[buffer(1)]])
 {
     main0_out out = {};
-    out.gl_Position = UniformViewProj.ViewProj * (UniformViewProj_1.Model * float4(in.in_var_TEXCOORD0, 1.0));
+    out.gl_Position = UniformViewProj.ViewProj * (UniformModel.Model * float4(in.in_var_TEXCOORD0, 1.0));
     out.out_var_TEXCOORD0 = float2(in.in_var_TEXCOORD1.x, 1.0 - in.in_var_TEXCOORD1.y);
     out.out_var_TEXCOORD1 = in.in_var_TEXCOORD2;
     return out;

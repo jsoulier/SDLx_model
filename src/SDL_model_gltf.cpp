@@ -243,12 +243,74 @@ bool LoadGltf(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pa
             }
         }
     }
+    model->gltf.num_nodes = 0;
     for (int i = 0; i < data->nodes_count; i++)
     {
-        const cgltf_node& node = data->nodes[i];
-        if (node.mesh)
+        const cgltf_node& src_node = data->nodes[i];
+        if (src_node.mesh)
         {
-            cgltf_node_transform_world(&node, model->gltf.meshes[node.mesh - data->meshes].transform);
+            model->gltf.num_nodes++;
+        }
+    }
+    model->gltf.nodes = new SDLx_ModelNode[model->gltf.num_nodes];
+    if (!model->gltf.nodes)
+    {
+        SDL_Log("Failed to create nodes");
+        return false;
+    }
+    model->gltf.num_nodes = 0;
+    for (int i = 0; i < data->nodes_count; i++)
+    {
+        const cgltf_node& src_node = data->nodes[i];
+        if (!src_node.mesh)
+        {
+            continue;
+        }
+        SDLx_ModelNode& node = model->gltf.nodes[model->gltf.num_nodes++];
+        SDLx_ModelMatrix& transform = node.transform;
+        node.mesh = &model->gltf.meshes[src_node.mesh - data->meshes];
+        cgltf_node_transform_world(&src_node, transform);
+        const cgltf_mesh* src_mesh = src_node.mesh;
+        for (int j = 0; j < src_mesh->primitives_count; j++)
+        {
+            const cgltf_primitive* primitive = &src_mesh->primitives[j];
+            for (int k = 0; k < primitive->attributes_count; k++)
+            {
+                const cgltf_attribute* attribute = &primitive->attributes[k];
+                if (attribute->type != cgltf_attribute_type_position)
+                {
+                    continue;
+                }
+                const cgltf_accessor* accessor = attribute->data;
+                if (!accessor->has_min || !accessor->has_max)
+                {
+                    continue;
+                }
+                for (int l = 0; l < 8; l++)
+                {
+                    float world_bounds[4]{};
+                    float local_bounds[4] =
+                    {
+                        (l & 1) ? accessor->max[0] : accessor->min[0],
+                        (l & 2) ? accessor->max[1] : accessor->min[1],
+                        (l & 4) ? accessor->max[2] : accessor->min[2],
+                        1.0f
+                    };
+                    for (int r = 0; r < 4; r++)
+                    {
+                        for (int c = 0; c < 4; c++)
+                        {
+                            world_bounds[r] += transform[r * 4 + c] * local_bounds[c];
+                        }
+                    }
+                    model->min.x = std::min(model->min.x, world_bounds[0]);
+                    model->min.y = std::min(model->min.y, world_bounds[1]);
+                    model->min.z = std::min(model->min.z, world_bounds[2]);
+                    model->max.x = std::max(model->max.x, world_bounds[0]);
+                    model->max.y = std::max(model->max.y, world_bounds[1]);
+                    model->max.z = std::max(model->max.z, world_bounds[2]);
+                }
+            }
         }
     }
     cgltf_free(data);

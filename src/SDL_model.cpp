@@ -115,6 +115,7 @@ void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model)
             delete mesh.primitives;
         }
         delete model->gltf.meshes;
+        delete model->gltf.nodes;
         break;
     case SDLX_MODELTYPE_VOXOBJ:
         SDL_ReleaseGPUBuffer(device, model->vox_obj.vertex_buffer);

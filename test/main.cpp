@@ -15,7 +15,7 @@ static constexpr float Fov = 1.0f;
 static constexpr float Near = 0.1f;
 static constexpr float Far = 1000.0f;
 static constexpr float Pan = 0.002f;
-static constexpr float Zoom = 20.0f;
+static constexpr float Zoom = 1.0f;
 static constexpr glm::vec3 Up = glm::vec3{0.0f, 1.0f, 0.0f};
 static constexpr glm::vec4 Light = glm::vec4{-0.33f, -1.0f, -0.66f, 0.33f};
 
@@ -29,7 +29,7 @@ static uint32_t old_width;
 static uint32_t old_height;
 static float pitch;
 static float yaw;
-static float distance{256.0f};
+static float distance{64.0f};
 
 static bool Init()
 {
@@ -211,13 +211,20 @@ static void Draw()
             SDL_BindGPUGraphicsPipeline(render_pass, pipelines[SDLX_MODELTYPE_GLTF]);
             SDL_PushGPUVertexUniformData(command_buffer, 0, &view_proj_matrix, sizeof(view_proj_matrix));
             SDL_PushGPUFragmentUniformData(command_buffer, 0, &Light, sizeof(Light));
-            for (int i = 0; i < gltf.num_meshes; i++)
+            for (int i = 0; i < gltf.num_nodes; i++)
             {
-                SDLx_ModelMatrix& transform = gltf.meshes[i].transform;
+                SDLx_ModelMesh* mesh = gltf.nodes[i].mesh;
+                SDLx_ModelMatrix& transform = gltf.nodes[i].transform;
                 SDL_PushGPUVertexUniformData(command_buffer, 1, transform, sizeof(transform));
-                for (int j = 0; j < gltf.meshes[i].num_primitives; j++)
+                for (int k = 0; k < mesh->num_primitives; k++)
                 {
-                    SDLx_ModelPrimitive& primitive = gltf.meshes[i].primitives[j];
+                    SDLx_ModelPrimitive& primitive = mesh->primitives[k];
+                    if (!primitive.position_buffer || !primitive.texcoord_buffer ||
+                        !primitive.normal_buffer || !primitive.index_buffer ||
+                        !primitive.color_texture || !primitive.normal_texture)
+                    {
+                        continue;
+                    }
                     SDL_GPUBufferBinding vertex_buffers[3]{};
                     SDL_GPUBufferBinding index_buffer{};
                     SDL_GPUTextureSamplerBinding textures[2]{};
@@ -306,7 +313,19 @@ int main(int argc, char** argv)
                 }
                 break;
             case SDL_EVENT_MOUSE_WHEEL:
-                distance = std::max(1.0f, distance - event.wheel.y * Zoom);
+                {
+                    const bool* keys = SDL_GetKeyboardState(nullptr);
+                    float speed = Zoom;
+                    if (keys[SDL_SCANCODE_LCTRL])
+                    {
+                        speed *= 10.0f;
+                    }
+                    else if (keys[SDL_SCANCODE_LSHIFT])
+                    {
+                        speed /= 10.0f;
+                    }
+                    distance = std::max(0.1f, distance - event.wheel.y * speed);
+                }
                 break;
             case SDL_EVENT_DROP_FILE:
                 Load(event.drop.data);

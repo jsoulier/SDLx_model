@@ -7,7 +7,7 @@
 #include "internal.hpp"
 #include "stb_image.h"
 
-SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, std::filesystem::path& path)
+SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const std::filesystem::path& path)
 {
     int width;
     int height;

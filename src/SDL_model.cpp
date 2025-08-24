@@ -3,7 +3,6 @@
 
 #include <filesystem>
 #include <limits>
-#include <vector>
 
 #include "internal.hpp"
 
@@ -27,26 +26,25 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, co
     std::filesystem::path file = path;
     if (type == SDLX_MODELTYPE_INVALID)
     {
-        static std::vector<std::filesystem::path> Extensions[SDLX_MODELTYPE_COUNT] =
+        if (std::filesystem::exists(file.replace_extension(".gltf")) ||
+            std::filesystem::exists(file.replace_extension(".glb")))
         {
-            {},
-            {".gltf"},
-            {".vox", ".obj", ".png"},
-            {".vox"},
-        };
-        for (int i = SDLX_MODELTYPE_INVALID; i < SDLX_MODELTYPE_COUNT && type == SDLX_MODELTYPE_INVALID; i++)
+            type = SDLX_MODELTYPE_GLTF;
+        }
+        else if (std::filesystem::exists(file.replace_extension(".vox")))
         {
-            type = SDLx_ModelType(i);
-            for (const std::filesystem::path& extension : Extensions[i])
+            if (std::filesystem::exists(file.replace_extension(".obj")) &&
+                std::filesystem::exists(file.replace_extension(".png")) &&
+                std::filesystem::exists(file.replace_extension(".mtl")))
             {
-                if (!std::filesystem::exists(file.replace_extension(extension)))
-                {
-                    type = SDLX_MODELTYPE_INVALID;
-                    break;
-                }
+                type = SDLX_MODELTYPE_VOXOBJ;
+            }
+            else
+            {
+                type = SDLX_MODELTYPE_VOXRAW;
             }
         }
-        if (type == SDLX_MODELTYPE_INVALID)
+        else
         {
             SDL_Log("Failed to deduce type: %s", path);
             return nullptr;
@@ -103,19 +101,21 @@ void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model)
     case SDLX_MODELTYPE_GLTF:
         for (int i = 0; i < model->gltf.num_meshes; i++)
         {
-            SDLx_ModelGltfMesh& mesh = model->gltf.meshes[i];
+            SDLx_ModelMesh& mesh = model->gltf.meshes[i];
             for (int j = 0; j < mesh.num_primitives; j++)
             {
-                SDLx_ModelGltfPrimitive& primitive = mesh.primitives[j];
+                SDLx_ModelPrimitive& primitive = mesh.primitives[j];
                 SDL_ReleaseGPUBuffer(device, primitive.position_buffer);
                 SDL_ReleaseGPUBuffer(device, primitive.texcoord_buffer);
                 SDL_ReleaseGPUBuffer(device, primitive.normal_buffer);
                 SDL_ReleaseGPUBuffer(device, primitive.index_buffer);
                 SDL_ReleaseGPUTexture(device, primitive.color_texture);
+                SDL_ReleaseGPUTexture(device, primitive.normal_texture);
             }
             delete mesh.primitives;
         }
         delete model->gltf.meshes;
+        break;
     case SDLX_MODELTYPE_VOXOBJ:
         SDL_ReleaseGPUBuffer(device, model->vox_obj.vertex_buffer);
         SDL_ReleaseGPUBuffer(device, model->vox_obj.index_buffer);

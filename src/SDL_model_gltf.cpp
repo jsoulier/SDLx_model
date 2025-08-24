@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
+#include <type_traits>
 
 #include "cgltf.h"
 #include "internal.hpp"
@@ -43,8 +44,14 @@ SDL_GPUBuffer* CreateVertexBuffer(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_p
     }
     for (uint32_t i = 0; i < accessor->count; i++)
     {
-        static constexpr int Components = sizeof(T) / sizeof(float);
-        cgltf_accessor_read_float(accessor, i, data + i * Components, Components);
+        if constexpr (std::is_same_v<T, SDLx_ModelVec2>)
+        {
+            cgltf_accessor_read_float(accessor, i, data + i * 2, 2);
+        }
+        else
+        {
+            cgltf_accessor_read_float(accessor, i, data + i * 3, 3);
+        }
     }
     SDL_GPUTransferBufferLocation location{};
     SDL_GPUBufferRegion region{};
@@ -85,7 +92,7 @@ bool CreateIndexBuffer(SDLx_ModelPrimitive& primitive, SDL_GPUDevice* device, SD
     }
     {
         SDL_GPUBufferCreateInfo info{};
-        info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
+        info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
         info.size = accessor->count * stride;
         primitive.index_buffer = SDL_CreateGPUBuffer(device, &info);
         if (!primitive.index_buffer)
@@ -131,13 +138,16 @@ bool LoadGltf(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pa
 {
     cgltf_options options{};
     cgltf_data* data = nullptr;
-    if (cgltf_parse_file(&options, path.replace_extension(".gltf").string().data(), &data))
+    if (cgltf_parse_file(&options, path.replace_extension(".gltf").string().data(), &data) &&
+        cgltf_parse_file(&options, path.replace_extension(".glb").string().data(), &data))
     {
-        if (cgltf_parse_file(&options, path.replace_extension(".glb").string().data(), &data))
-        {
-            SDL_Log("Failed to parse gltf: %s", path.string().data());
-            return false;
-        }
+        SDL_Log("Failed to parse gltf: %s", path.string().data());
+        return false;
+    }
+    if (cgltf_load_buffers(&options, data, path.string().data()))
+    {
+        SDL_Log("Failed to load buffers: %s", path.string().data());
+        return false;
     }
     model->gltf.num_meshes = data->meshes_count;
     model->gltf.meshes = new SDLx_ModelMesh[model->gltf.num_meshes];

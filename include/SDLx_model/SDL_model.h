@@ -42,26 +42,27 @@ typedef struct SDLx_ModelVec3
     float z;
 } SDLx_ModelVec3;
 
-typedef struct SDLx_ModelGltfPrimitive
+typedef struct SDLx_ModelPrimitive
 {
     SDL_GPUBuffer* position_buffer; /* SDLx_ModelVec3 */
     SDL_GPUBuffer* texcoord_buffer; /* SDLx_ModelVec2 */
     SDL_GPUBuffer* normal_buffer;   /* SDLx_ModelVec3 */
     SDL_GPUBuffer* index_buffer;    /* Uint16 or Uint32 */
     SDL_GPUTexture* color_texture;
+    SDL_GPUTexture* normal_texture;
     Uint16 num_indices;
     SDL_GPUIndexElementSize index_element_size;
-} SDLx_ModelGltfPrimitive;
+} SDLx_ModelPrimitive;
 
-typedef struct SDLx_ModelGltfMesh
+typedef struct SDLx_ModelMesh
 {
-    SDLx_ModelGltfPrimitive* primitives;
+    SDLx_ModelPrimitive* primitives;
     int num_primitives;
-} SDLx_ModelGltfMesh;
+} SDLx_ModelMesh;
 
 typedef struct SDLx_ModelGltf
 {
-    SDLx_ModelGltfMesh* meshes;
+    SDLx_ModelMesh* meshes;
     int num_meshes;
 } SDLx_ModelGltf;
 

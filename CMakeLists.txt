@@ -18,13 +18,13 @@ endif()
 
 add_library(SDLx_model
     src/SDL_model.cpp
+    src/SDL_model_gltf.cpp
+    src/SDL_model_vox_obj.cpp
+    src/SDL_model_vox_raw.cpp
     src/cgltf.c
-    src/gltf.cpp
     src/internal.cpp
     src/stb_image.c
     src/tiny_obj_loader.cpp
-    src/vox_obj.cpp
-    src/vox_raw.cpp
 )
 target_include_directories(SDLx_model PUBLIC include)
 if(${BUILD_SHARED_LIBS})
@@ -95,6 +95,8 @@ if(PROJECT_IS_TOP_LEVEL)
         endif()
         package(${JSON})
     endfunction()
+    add_shader(gltf.frag)
+    add_shader(gltf.vert)
     add_shader(vox_obj.frag)
     add_shader(vox_obj.vert)
     add_shader(vox_raw.frag)

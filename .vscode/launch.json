@@ -2,6 +2,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "gltf",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/sdlx_model_test.exe",
+            "args": [
+                "${workspaceFolder}/test/models/gltf/20x40x10"
+            ],
+            "cwd": "${workspaceFolder}/build/bin",
+            "preLaunchTask": "CMake: build"
+        },
+        {
             "name": "vox_obj",
             "type": "cppvsdbg",
             "request": "launch",

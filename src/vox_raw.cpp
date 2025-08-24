@@ -22,8 +22,7 @@ T Read(std::ifstream& file)
     return data;
 }
 
-bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device,
-    SDL_GPUCopyPass* copy_pass, std::filesystem::path& path)
+bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, std::filesystem::path& path)
 {
     std::ifstream file(path.replace_extension(".vox"), std::ios::binary);
     if (!file)
@@ -89,8 +88,7 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device,
     }
     {
         SDL_GPUBufferCreateInfo info{};
-        info.usage = SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ |
-            SDL_GPU_BUFFERUSAGE_VERTEX | SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
+        info.usage = SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ | SDL_GPU_BUFFERUSAGE_VERTEX | SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
         info.size = voxels.size() * sizeof(SDLx_ModelVoxRawInstance);
         model->vox_raw.instance_buffer = SDL_CreateGPUBuffer(device, &info);
         if (!model->vox_raw.instance_buffer)
@@ -99,8 +97,7 @@ bool LoadVoxRaw(SDLx_Model* model, SDL_GPUDevice* device,
             return false;
         }
     }
-    SDLx_ModelVoxRawInstance* instance_data = static_cast<SDLx_ModelVoxRawInstance*>(
-        SDL_MapGPUTransferBuffer(device, transfer_buffer, false));
+    SDLx_ModelVoxRawInstance* instance_data = static_cast<SDLx_ModelVoxRawInstance*>(SDL_MapGPUTransferBuffer(device, transfer_buffer, false));
     if (!instance_data)
     {
         SDL_Log("Failed to map transfer buffer: %s", SDL_GetError());

@@ -10,6 +10,7 @@ if(PROJECT_IS_TOP_LEVEL)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${BINARY_DIR})
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${BINARY_DIR})
     make_directory(${BINARY_DIR})
+    set(BUILD_SHARED_LIBS ON)
     set(GLM_BUILD_LIBRARY OFF)
     add_subdirectory(test/lib/SDL)
     add_subdirectory(test/lib/glm)
@@ -17,6 +18,8 @@ endif()
 
 add_library(SDLx_model
     src/SDL_model.cpp
+    src/cgltf.c
+    src/gltf.cpp
     src/internal.cpp
     src/stb_image.c
     src/tiny_obj_loader.cpp
@@ -24,9 +27,14 @@ add_library(SDLx_model
     src/vox_raw.cpp
 )
 target_include_directories(SDLx_model PUBLIC include)
+if(${BUILD_SHARED_LIBS})
+    target_compile_definitions(SDLx_model PUBLIC SDLX_MODEL_DLL=1)
+else()
+    target_compile_definitions(SDLx_model PUBLIC SDLX_MODEL_DLL=0)
+endif()
+target_compile_definitions(SDLx_model PRIVATE SDLX_MODEL_BUILD=1)
 target_link_libraries(SDLx_model PRIVATE SDL3::SDL3)
 set_target_properties(SDLx_model PROPERTIES CXX_STANDARD 23)
-set_target_properties(SDLx_model PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 add_library(SDLx_model::SDLx_model ALIAS SDLx_model)
 
 if(PROJECT_IS_TOP_LEVEL)

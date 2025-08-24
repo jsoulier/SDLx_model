@@ -2,13 +2,38 @@
 
 #include <SDL3/SDL.h>
 
+#if defined(SDLX_MODEL_DLL) && SDLX_MODEL_DLL
+    #if defined(_WIN32)
+        #if defined(SDLX_MODEL_BUILD)
+            #define SDLX_MODEL_API __declspec(dllexport)
+        #else
+            #define SDLX_MODEL_API __declspec(dllimport)
+        #endif
+    #else
+        #if defined(__GNUC__) && __GNUC__ >= 4
+            #define SDLX_MODEL_API __attribute__((visibility("default")))
+        #else
+            #define SDLX_MODEL_API
+        #endif
+    #endif
+#else
+    #define SDLX_MODEL_API
+#endif
+
 typedef enum SDLx_ModelType
 {
     SDLX_MODELTYPE_INVALID,
+    SDLX_MODELTYPE_GLTF,
     SDLX_MODELTYPE_VOXOBJ, /* MagicaVoxel Obj */ 
     SDLX_MODELTYPE_VOXRAW, /* MagicaVoxel Vox */ 
     SDLX_MODELTYPE_COUNT,
 } SDLx_ModelType;
+
+typedef struct SDLx_ModelVec2
+{
+    float x;
+    float y;
+} SDLx_ModelVec2;
 
 typedef struct SDLx_ModelVec3
 {
@@ -16,6 +41,29 @@ typedef struct SDLx_ModelVec3
     float y;
     float z;
 } SDLx_ModelVec3;
+
+typedef struct SDLx_ModelGltfPrimitive
+{
+    SDL_GPUBuffer* position_buffer; /* SDLx_ModelVec3 */
+    SDL_GPUBuffer* texcoord_buffer; /* SDLx_ModelVec2 */
+    SDL_GPUBuffer* normal_buffer;   /* SDLx_ModelVec3 */
+    SDL_GPUBuffer* index_buffer;    /* Uint16 or Uint32 */
+    SDL_GPUTexture* color_texture;
+    Uint16 num_indices;
+    SDL_GPUIndexElementSize index_element_size;
+} SDLx_ModelGltfPrimitive;
+
+typedef struct SDLx_ModelGltfMesh
+{
+    SDLx_ModelGltfPrimitive* primitives;
+    int num_primitives;
+} SDLx_ModelGltfMesh;
+
+typedef struct SDLx_ModelGltf
+{
+    SDLx_ModelGltfMesh* meshes;
+    int num_meshes;
+} SDLx_ModelGltf;
 
 /*
  * 00-07: x magnitude (8 bits)
@@ -68,6 +116,7 @@ typedef struct SDLx_Model
     SDLx_ModelType type;
     union
     {
+        SDLx_ModelGltf gltf;
         SDLx_ModelVoxObj vox_obj;
         SDLx_ModelVoxRaw vox_raw;
     };
@@ -75,6 +124,5 @@ typedef struct SDLx_Model
     SDLx_ModelVec3 max;
 } SDLx_Model;
 
-SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device,
-    SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type);
-void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model);
+SDLX_MODEL_API SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type);
+SDLX_MODEL_API void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model);

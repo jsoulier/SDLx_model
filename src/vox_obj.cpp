@@ -10,8 +10,7 @@
 #include "internal.hpp"
 #include "tiny_obj_loader.h"
 
-static SDLx_ModelVoxObjVertex Parse(SDLx_Model* model,
-    const tinyobj::attrib_t& attrib, const tinyobj::index_t& index)
+static SDLx_ModelVoxObjVertex Parse(SDLx_Model* model, const tinyobj::attrib_t& attrib, const tinyobj::index_t& index)
 {
     static constexpr int PositionScale = 10;
     static constexpr int TexcoordScale = 255;
@@ -79,8 +78,7 @@ static SDLx_ModelVoxObjVertex Parse(SDLx_Model* model,
     return vertex;
 }
 
-bool LoadVoxObj(SDLx_Model* model, SDL_GPUDevice* device,
-    SDL_GPUCopyPass* copy_pass, std::filesystem::path& path)
+bool LoadVoxObj(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, std::filesystem::path& path)
 {
     tinyobj::ObjReader reader;
     if (!reader.ParseFromFile(path.replace_extension(".obj").string()))
@@ -107,10 +105,8 @@ bool LoadVoxObj(SDLx_Model* model, SDL_GPUDevice* device,
             return false;
         }
     }
-    SDLx_ModelVoxObjVertex* vertex_data = static_cast<SDLx_ModelVoxObjVertex*>(
-        SDL_MapGPUTransferBuffer(device, vertex_transfer_buffer, false));
-    uint16_t* index_data = static_cast<uint16_t*>(
-        SDL_MapGPUTransferBuffer(device, index_transfer_buffer, false));
+    SDLx_ModelVoxObjVertex* vertex_data = static_cast<SDLx_ModelVoxObjVertex*>(SDL_MapGPUTransferBuffer(device, vertex_transfer_buffer, false));
+    uint16_t* index_data = static_cast<uint16_t*>(SDL_MapGPUTransferBuffer(device, index_transfer_buffer, false));
     if (!vertex_data || !index_data)
     {
         SDL_Log("Failed to map transfer buffer(s): %s, %s", path.string().data(), SDL_GetError());

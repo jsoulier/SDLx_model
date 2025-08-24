@@ -7,8 +7,7 @@
 
 #include "internal.hpp"
 
-SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device,
-    SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type)
+SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const char* path, SDLx_ModelType type)
 {
     if (!device)
     {
@@ -31,11 +30,11 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device,
         static std::vector<std::filesystem::path> Extensions[SDLX_MODELTYPE_COUNT] =
         {
             {},
+            {".gltf"},
             {".vox", ".obj", ".png"},
             {".vox"},
         };
-        for (int i = SDLX_MODELTYPE_INVALID; i < SDLX_MODELTYPE_COUNT &&
-            type == SDLX_MODELTYPE_INVALID; i++)
+        for (int i = SDLX_MODELTYPE_INVALID; i < SDLX_MODELTYPE_COUNT && type == SDLX_MODELTYPE_INVALID; i++)
         {
             type = SDLx_ModelType(i);
             for (const std::filesystem::path& extension : Extensions[i])
@@ -68,6 +67,9 @@ SDLx_Model* SDLx_ModelLoad(SDL_GPUDevice* device,
     bool success = false;
     switch (type)
     {
+    case SDLX_MODELTYPE_GLTF:
+        success = LoadGltf(model, device, copy_pass, file);
+        break;
     case SDLX_MODELTYPE_VOXOBJ:
         success = LoadVoxObj(model, device, copy_pass, file);
         break;
@@ -98,6 +100,22 @@ void SDLx_ModelDestroy(SDL_GPUDevice* device, SDLx_Model* model)
     }
     switch (model->type)
     {
+    case SDLX_MODELTYPE_GLTF:
+        for (int i = 0; i < model->gltf.num_meshes; i++)
+        {
+            SDLx_ModelGltfMesh& mesh = model->gltf.meshes[i];
+            for (int j = 0; j < mesh.num_primitives; j++)
+            {
+                SDLx_ModelGltfPrimitive& primitive = mesh.primitives[j];
+                SDL_ReleaseGPUBuffer(device, primitive.position_buffer);
+                SDL_ReleaseGPUBuffer(device, primitive.texcoord_buffer);
+                SDL_ReleaseGPUBuffer(device, primitive.normal_buffer);
+                SDL_ReleaseGPUBuffer(device, primitive.index_buffer);
+                SDL_ReleaseGPUTexture(device, primitive.color_texture);
+            }
+            delete mesh.primitives;
+        }
+        delete model->gltf.meshes;
     case SDLX_MODELTYPE_VOXOBJ:
         SDL_ReleaseGPUBuffer(device, model->vox_obj.vertex_buffer);
         SDL_ReleaseGPUBuffer(device, model->vox_obj.index_buffer);

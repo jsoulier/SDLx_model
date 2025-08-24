@@ -220,7 +220,7 @@ bool LoadGltf(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pa
                     {
                         const cgltf_image* image = view.texture->image;
                         path.replace_filename(image->uri);
-                        primitive.color_texture = LoadTexture(device, copy_pass, path);
+                        primitive.color_texture = LoadTexture(device, copy_pass, path, true);
                         if (!primitive.color_texture)
                         {
                             SDL_Log("Failed to load color texture");
@@ -233,7 +233,7 @@ bool LoadGltf(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pa
                 {
                     cgltf_image* image = view.texture->image;
                     path.replace_filename(image->uri);
-                    primitive.normal_texture = LoadTexture(device, copy_pass, path);
+                    primitive.normal_texture = LoadTexture(device, copy_pass, path, true);
                     if (!primitive.normal_texture)
                     {
                         SDL_Log("Failed to load color texture");
@@ -241,6 +241,14 @@ bool LoadGltf(SDLx_Model* model, SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pa
                     }
                 }
             }
+        }
+    }
+    for (int i = 0; i < data->nodes_count; i++)
+    {
+        const cgltf_node& node = data->nodes[i];
+        if (node.mesh)
+        {
+            cgltf_node_transform_world(&node, model->gltf.meshes[node.mesh - data->meshes].transform);
         }
     }
     cgltf_free(data);

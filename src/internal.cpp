@@ -7,11 +7,12 @@
 #include "internal.hpp"
 #include "stb_image.h"
 
-SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const std::filesystem::path& path)
+SDL_GPUTexture* LoadTexture(SDL_GPUDevice* device, SDL_GPUCopyPass* copy_pass, const std::filesystem::path& path, bool flip_vertically)
 {
     int width;
     int height;
     int channels;
+    stbi_set_flip_vertically_on_load_thread(flip_vertically);
     void* src_data = stbi_load(path.string().data(), &width, &height, &channels, 4);
     if (!src_data)
     {

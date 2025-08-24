@@ -42,6 +42,8 @@ typedef struct SDLx_ModelVec3
     float z;
 } SDLx_ModelVec3;
 
+typedef float SDLx_ModelMatrix[16];
+
 typedef struct SDLx_ModelPrimitive
 {
     SDL_GPUBuffer* position_buffer; /* SDLx_ModelVec3 */
@@ -58,6 +60,7 @@ typedef struct SDLx_ModelMesh
 {
     SDLx_ModelPrimitive* primitives;
     int num_primitives;
+    SDLx_ModelMatrix transform;
 } SDLx_ModelMesh;
 
 typedef struct SDLx_ModelGltf
